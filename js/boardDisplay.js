@@ -8,8 +8,21 @@ export class BoardDisplay {
    * @param {Tile[]} tiles
    * @param {Function} rollBtnCallback
    * @param {Function} nextPlayerBtnCallback
+   * @param {Function} buyPropertyBtnCallback
+   * @param {Function} payPrisonBtnCallback
+   * @param {Function} rollPrisonBtnCallback
+   * @param {Function} usePrisonCardBtnCallback
    */
-  setup(parentElement, tiles, rollBtnCallback, nextPlayerBtnCallback) {
+  setup({
+    parentElement,
+    tiles,
+    rollBtnCallback,
+    nextPlayerBtnCallback,
+    buyPropertyBtnCallback,
+    payPrisonBtnCallback,
+    rollPrisonBtnCallback,
+    usePrisonCardBtnCallback
+  }) {
     this.#drawBoard(parentElement);
     this.#drawTopRow(
       parentElement,
@@ -27,7 +40,15 @@ export class BoardDisplay {
       parentElement,
       tiles.filter((tile) => tile.row === TileRowEnum.Bottom),
     );
-    this.#drawControls(parentElement, rollBtnCallback, nextPlayerBtnCallback);
+    this.#drawControls(
+      parentElement,
+      rollBtnCallback,
+      nextPlayerBtnCallback,
+      buyPropertyBtnCallback,
+      payPrisonBtnCallback,
+      rollPrisonBtnCallback,
+      usePrisonCardBtnCallback
+    );
   }
 
   /**
@@ -181,8 +202,20 @@ export class BoardDisplay {
    * @param {HTMLElement} parentElement
    * @param {Function} rollBtnCallback
    * @param {Function} nextPlayerBtnCallback
+   * @param {Function} buyPropertyBtnCallback
+   * @param {Function} payPrisonBtnCallback
+   * @param {Function} rollPrisonBtnCallback
+   * @param {Function} usePrisonCardBtnCallback
    */
-  #drawControls(parentElement, rollBtnCallback, nextPlayerBtnCallback) {
+  #drawControls(
+    parentElement,
+    rollBtnCallback,
+    nextPlayerBtnCallback,
+    buyPropertyBtnCallback,
+    payPrisonBtnCallback,
+    rollPrisonBtnCallback,
+    usePrisonCardBtnCallback
+  ) {
     const controlArea = document.createElement("DIV");
     controlArea.style.gridArea = "mid";
     controlArea.style.border = "solid 1px black";
@@ -220,7 +253,7 @@ export class BoardDisplay {
     luckyDeck.textContent = TileNamesEnum.Szerencsekartya;
     controlArea.appendChild(luckyDeck);
 
-    this.#drawInfoArea(controlArea);
+    this.#drawInfoArea(controlArea, buyPropertyBtnCallback, payPrisonBtnCallback, rollPrisonBtnCallback, usePrisonCardBtnCallback);
   }
 
   /**
@@ -249,7 +282,6 @@ export class BoardDisplay {
     diceResults.style.border = "solid 1px black";
     diceResults.style.placeSelf = "center";
     diceResults.style.justifyContent = "center";
-    diceResults.textContent = "Placeholder";
     diceContainer.appendChild(diceResults);
 
     const nextPlayerButton = document.createElement("BUTTON");
@@ -265,7 +297,7 @@ export class BoardDisplay {
     diceContainer.appendChild(nextPlayerButton);
 
     const diceButton = document.createElement("BUTTON");
-    diceButton.id="diceButton";
+    diceButton.id = "diceButton";
     diceButton.style.gridArea = "button";
     diceButton.style.width = "max-content";
     diceButton.style.height = "max-content";
@@ -281,15 +313,117 @@ export class BoardDisplay {
   /**
    *
    * @param {HTMLElement} parentElement
+   * @param {Function} buyPropertyBtnCallback
+   * @param {Function} payPrisonBtnCallback
+   * @param {Function} rollPrisonBtnCallback
+   * @param {Function} usePrisonCardBtnCallback
    */
-  #drawInfoArea(parentElement) {
+  #drawInfoArea(parentElement, buyPropertyBtnCallback, payPrisonBtnCallback, rollPrisonBtnCallback, usePrisonCardBtnCallback) {
     const infoContainer = document.createElement("DIV");
     infoContainer.style.gridArea = "info";
+    infoContainer.style.display = "grid";
+    infoContainer.style.gridTemplateAreas = `'infobar' 'actionButtons'`;
     infoContainer.style.width = "90%";
     infoContainer.style.height = "80%";
     infoContainer.style.margin = "auto";
     infoContainer.style.border = "solid 1px black";
     parentElement.appendChild(infoContainer);
+
+    const infoBar = document.createElement("DIV");
+    infoBar.style.height = "max-content";
+    infoBar.style.padding = "5px";
+    infoBar.style.borderBottom = "1px solid grey";
+    infoBar.style.gridArea = "infobar";
+    infoContainer.appendChild(infoBar);
+
+    this.#createInfoBarElements(infoBar);
+
+    this.#createActionButtons(infoContainer, buyPropertyBtnCallback, payPrisonBtnCallback, rollPrisonBtnCallback, usePrisonCardBtnCallback);
+
+  }
+
+  /**
+   *
+   * @param {HTMLElement} parent
+   */
+  #createInfoBarElements(parent) {
+    const activePlayer = document.createElement("SPAN");
+    activePlayer.id = "activePlayer";
+    activePlayer.style.paddingRight = "10px";
+    parent.appendChild(activePlayer);
+
+    const activePlayerWealth = document.createElement("SPAN");
+    activePlayerWealth.id = "activePlayerWealth";
+    activePlayerWealth.style.paddingRight = "10px";
+    parent.appendChild(activePlayerWealth);
+
+    const activePlayerFreeEscapeCounter = document.createElement("SPAN");
+    activePlayerFreeEscapeCounter.id = "activePlayerFreeEscapeCounter";
+    activePlayerFreeEscapeCounter.style.paddingRight = "10px";
+    parent.appendChild(activePlayerFreeEscapeCounter);
+
+    const activePlayerPrisonCountdown = document.createElement("SPAN");
+    activePlayerPrisonCountdown.id = "activePlayerPrisonCountdown";
+    activePlayerPrisonCountdown.style.paddingRight = "10px";
+    activePlayerPrisonCountdown.style.display = "none";
+    parent.appendChild(activePlayerPrisonCountdown);
+  }
+
+  /**
+   *
+   * @param {HTMLElement} parent
+   * @param {Function} buyPropertyBtnCallback
+   * @param {Function} payPrisonBtnCallback
+   * @param {Function} rollPrisonBtnCallback
+   * @param {Function} usePrisonCardBtnCallback
+   */
+  #createActionButtons(parent, buyPropertyBtnCallback, payPrisonBtnCallback, rollPrisonBtnCallback, usePrisonCardBtnCallback) {
+    const buyPropertyButton = document.createElement("BUTTON");
+    buyPropertyButton.id = "buyPropertyButton";
+    buyPropertyButton.style.gridArea = "actionButtons";
+    buyPropertyButton.style.width = "max-content";
+    buyPropertyButton.style.height = "max-content";
+    buyPropertyButton.style.padding = "5px 20px";
+    buyPropertyButton.style.display = "none";
+    buyPropertyButton.style.placeSelf = "center";
+    buyPropertyButton.textContent = "Buy property!";
+    buyPropertyButton.addEventListener("click", buyPropertyBtnCallback);
+    parent.appendChild(buyPropertyButton);
+
+    const payPrisonButton = document.createElement("BUTTON");
+    payPrisonButton.id = "payPrisonButton";
+    payPrisonButton.style.gridArea = "actionButtons";
+    payPrisonButton.style.width = "max-content";
+    payPrisonButton.style.height = "max-content";
+    payPrisonButton.style.padding = "5px 20px";
+    payPrisonButton.style.display = "none";
+    payPrisonButton.style.placeSelf = "center";
+    payPrisonButton.textContent = "Pay! (5000Ft)";
+    payPrisonButton.addEventListener("click", payPrisonBtnCallback);
+    parent.appendChild(payPrisonButton);
+
+    const rollPrisonButton = document.createElement("BUTTON");
+    rollPrisonButton.id = "rollPrisonButton";
+    rollPrisonButton.style.gridArea = "actionButtons";
+    rollPrisonButton.style.width = "max-content";
+    rollPrisonButton.style.height = "max-content";
+    rollPrisonButton.style.padding = "5px 20px";
+    rollPrisonButton.style.display = "none";
+    rollPrisonButton.style.placeSelf = "center";
+    rollPrisonButton.textContent = "Roll for double!";
+    rollPrisonButton.addEventListener("click", rollPrisonBtnCallback);
+    parent.appendChild(rollPrisonButton);
+
+    const usePrisonCardButton = document.createElement("BUTTON");
+    usePrisonCardButton.id = "usePrisonCardButton";
+    usePrisonCardButton.style.width = "max-content";
+    usePrisonCardButton.style.height = "max-content";
+    usePrisonCardButton.style.padding = "5px 20px";
+    usePrisonCardButton.style.display = "none";
+    usePrisonCardButton.style.placeSelf = "center";
+    usePrisonCardButton.textContent = "Use card!";
+    usePrisonCardButton.addEventListener("click", usePrisonCardBtnCallback);
+    parent.appendChild(usePrisonCardButton);
   }
 
   /**
@@ -307,5 +441,95 @@ export class BoardDisplay {
         .getElementById(`Tile${player.position}players`)
         .appendChild(playerElement);
     });
+  }
+
+  /**
+   *
+   * @param {String | undefined} name
+   * @param {number | undefined} wealth
+   * @param {number | undefined} freeEscapeCounter
+   * @param {number | undefined} prisonCountdown
+   */
+  updatePlayerInfoDisplay({ name, wealth, freeEscapeCounter, prisonCountdown}) {
+    if (wealth !== undefined) {
+      document.getElementById("activePlayer").textContent = `Active player: ${name}`;
+    }
+    if (wealth !== undefined) {
+      document.getElementById("activePlayerWealth").textContent = `Wealth: ${wealth} Ft`;
+    }
+    if (freeEscapeCounter !== undefined) {
+      document.getElementById("activePlayerFreeEscapeCounter").textContent = `Free escape cards:  ${freeEscapeCounter}`;
+    }
+    if (prisonCountdown) {
+      document.getElementById("activePlayerPrisonCountdown").textContent = `Turns left in prison:  ${prisonCountdown}`;
+
+      if (prisonCountdown === 3) {
+        document.getElementById("activePlayerPrisonCountdown").style.display = "initial";
+      }
+      if (prisonCountdown === 0) {
+        document.getElementById("activePlayerPrisonCountdown").style.display = "none";
+      }
+    }
+  }
+
+  /**
+   *
+   * @param {Player} activePlayer
+   * @param {number} targetIndex
+   */
+  updatePlayerLocationDisplay(activePlayer, targetIndex) {
+    let playerElement = document.getElementById(activePlayer.name);
+
+    document
+      .getElementById(`Tile${targetIndex}players`)
+      .appendChild(playerElement);
+  }
+
+  hideRollButton() {
+    document.getElementById("diceButton").style.display = "none";
+  }
+
+  hideNextPlayerButton() {
+    document.getElementById("nextPlayerButton").style.display = "none";
+  }
+
+  hideBuyPropertyButton() {
+    document.getElementById("buyPropertyButton").style.display = "none";
+  }
+
+  hidePayPrisonButton() {
+    document.getElementById("payPrisonButton").style.display = "none";
+  }
+
+  hideRollPrisonButton() {
+    document.getElementById("rollPrisonButton").style.display = "none";
+  }
+
+  hideUsePrisonCardButton() {
+    document.getElementById("usePrisonCardButton").style.display = "none";
+  }
+
+  displayRollButton() {
+    document.getElementById("diceButton").style.display = "flex";
+  }
+
+  displayNextPlayerButton() {
+    document.getElementById("nextPlayerButton").style.display = "flex";
+  }
+
+  displayBuyPropertyButton() {
+    document.getElementById("buyPropertyButton").style.display = "flex";
+  }
+
+  displayPayPrisonButton() {
+    document.getElementById("payPrisonButton").style.display = "flex";
+  }
+
+  displayRollPrisonButton() {
+    document.getElementById("rollPrisonButton").style.display = "flex";
+  }
+
+  displayUsePrisonCardButton() {
+    document.getElementById("usePrisonCardButton").style.display = "flex";
   }
 }

@@ -14,7 +14,7 @@ export class Tile {
    */
   #type;
   /**
-   * @type {number}
+   * @type {String}
    */
   #owner;
   /**
@@ -25,6 +25,14 @@ export class Tile {
    * @type {number}
    */
   #price;
+  /**
+   * @type {number[]}
+   */
+  #rent;
+  /**
+   * @type {number}
+   */
+  #level;
 
   /**
    *
@@ -33,8 +41,9 @@ export class Tile {
    * @param {String} type
    * @param {String} title
    * @param {number | undefined} price
+   * @param {number[] | undefined} rent
    */
-  constructor({index, row, type, title, price}) {
+  constructor({index, row, type, title, price, rent}) {
     this.#index = index;
     this.#row = row;
     this.#type = type;
@@ -43,6 +52,10 @@ export class Tile {
 
     if (price) {
       this.#price = price;
+    }
+
+    if (rent) {
+      this.#rent = rent;
     }
   }
 
@@ -68,5 +81,28 @@ export class Tile {
 
   get price() {
     return this.#price;
+  }
+
+  get rent() {
+    return this.#rent;
+  }
+
+  get level() {
+    return this.#level;
+  }
+
+  /**
+   *
+   * @param {String} owner
+   */
+  set owner(owner) {
+    this.#owner = owner;
+  }
+
+  /**
+   * @param {number} level
+   */
+  set level(level) {
+    this.#level = level;
   }
 }

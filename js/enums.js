@@ -1,8 +1,8 @@
 let OwnersEnum;
 (function (OwnersEnum) {
-  OwnersEnum['Bank'] = 0;
-  OwnersEnum['Player1'] = 1;
-  OwnersEnum['Player2'] = 2;
+  OwnersEnum['Bank'] = 'Bank';
+  OwnersEnum['Player1'] = 'Player1';
+  OwnersEnum['Player2'] = 'Player2';
 })(OwnersEnum || (OwnersEnum = {}));
 
 let TileRowEnum;
@@ -20,6 +20,8 @@ let TileTypesEnum;
   TileTypesEnum['FreeParking'] = 'FreeParking';
   TileTypesEnum['GoToPrison'] = 'GoToPrison';
   TileTypesEnum['Property'] = 'Property';
+  TileTypesEnum['Train'] = 'Train';
+  TileTypesEnum['PublicWorks'] = 'PublicWorks';
   TileTypesEnum['SurpriseCard'] = 'SurpriseCard';
   TileTypesEnum['LuckyCard'] = 'LuckyCard';
   TileTypesEnum['Tax'] = 'Tax';

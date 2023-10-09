@@ -1,5 +1,5 @@
 import { Tile } from "./tile.js";
-import { TileNamesEnum, TileRowEnum, TileTypesEnum } from "./enums.js";
+import {OwnersEnum, TileNamesEnum, TileRowEnum, TileTypesEnum} from "./enums.js";
 import { BoardDisplay } from "./boardDisplay.js";
 import {Util} from "./util.js";
 
@@ -9,6 +9,7 @@ export class Board {
   #tiles;
   #players;
   #activePlayerIndex;
+  #gameGoing;
 
   /**
    *
@@ -18,17 +19,32 @@ export class Board {
     this.#players = players;
     this.#boardDisplay = new BoardDisplay();
     this.#domElement = document.createElement("DIV");
+    this.#gameGoing = true;
   }
 
   newGame() {
     this.#tiles = [];
     this.#createTiles();
-    this.#boardDisplay.setup(this.#domElement, this.#tiles, this.#roll.bind(this), this.#nextPlayer.bind(this));
+    this.#boardDisplay.setup({
+      parentElement: this.#domElement,
+      tiles: this.#tiles,
+      rollBtnCallback: this.#roll.bind(this),
+      nextPlayerBtnCallback: this.#nextPlayer.bind(this),
+      buyPropertyBtnCallback: this.#buyProperty.bind(this),
+      payPrisonBtnCallback: this.#payPrison.bind(this),
+      rollPrisonBtnCallback: this.#rollPrison.bind(this),
+      usePrisonCardBtnCallback: this.#usePrisonCard.bind(this)
+    });
     this.#boardDisplay.placePlayers(this.#players);
     this.#activePlayerIndex = 0;
+    this.#boardDisplay.updatePlayerInfoDisplay({
+      name: `${this.#players[this.#activePlayerIndex].name}`,
+      wealth: this.#players[this.#activePlayerIndex].wealth,
+      freeEscapeCounter: this.#players[this.#activePlayerIndex].freeEscapeCounter,
+  });
 
-    //TODO return false on game finish
-    //return false;
+    //TODO return gameGoing as false on game finish
+    //return this.#gameGoing;
   }
 
   #createTiles() {
@@ -53,6 +69,8 @@ export class Board {
         row: TileRowEnum.Bottom,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Piac_ter,
+        price: 6000,
+        rent: [200, 1000, 3000, 9000, 16000, 25000],
       }),
     );
     this.#tiles.push(
@@ -69,6 +87,8 @@ export class Board {
         row: TileRowEnum.Bottom,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Torok_udvar,
+        price: 6000,
+        rent: [400, 2000, 6000, 18000, 32000, 45000],
       }),
     );
     this.#tiles.push(
@@ -77,14 +97,17 @@ export class Board {
         row: TileRowEnum.Bottom,
         type: TileTypesEnum.Tax,
         title: TileNamesEnum.Jovedelemado,
+        price: 20000,
       }),
     );
     this.#tiles.push(
       new Tile({
         index: 5,
         row: TileRowEnum.Bottom,
-        type: TileTypesEnum.Property,
+        type: TileTypesEnum.Train,
         title: TileNamesEnum.Eszaki_vasutvonal,
+        price: 20000,
+        rent: [2500, 5000, 10000, 20000],
       }),
     );
     this.#tiles.push(
@@ -93,6 +116,8 @@ export class Board {
         row: TileRowEnum.Bottom,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Nagykorosi_ut,
+        price: 10000,
+        rent: [600, 3000, 9000, 27000, 40000, 55000],
       }),
     );
     this.#tiles.push(
@@ -109,6 +134,8 @@ export class Board {
         row: TileRowEnum.Bottom,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Lestar_ter,
+        price: 10000,
+        rent: [600, 3000, 9000, 27000, 40000, 55000],
       }),
     );
     this.#tiles.push(
@@ -117,6 +144,8 @@ export class Board {
         row: TileRowEnum.Bottom,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Kisfaludy_ut,
+        price: 12000,
+        rent: [800, 4000, 10000, 30000, 45000, 60000],
       }),
     );
     this.#tiles.push(
@@ -136,14 +165,17 @@ export class Board {
         row: TileRowEnum.Left,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Egyetem_utca,
+        price: 14000,
+        rent: [1000, 5000, 15000, 45000, 62500, 75000],
       }),
     );
     this.#tiles.push(
       new Tile({
         index: 12,
         row: TileRowEnum.Left,
-        type: TileTypesEnum.Property,
+        type: TileTypesEnum.PublicWorks,
         title: TileNamesEnum.Elektromos_muvek,
+        price: 15000,
       }),
     );
     this.#tiles.push(
@@ -152,6 +184,8 @@ export class Board {
         row: TileRowEnum.Left,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Szinhaz_ter,
+        price: 14000,
+        rent: [1000, 5000, 15000, 45000, 62500, 75000],
       }),
     );
     this.#tiles.push(
@@ -160,14 +194,18 @@ export class Board {
         row: TileRowEnum.Left,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Janus_Pannonius_ut,
+        price: 16000,
+        rent: [1200, 6000, 18000, 50000, 70000, 90000],
       }),
     );
     this.#tiles.push(
       new Tile({
         index: 15,
         row: TileRowEnum.Left,
-        type: TileTypesEnum.Property,
+        type: TileTypesEnum.Train,
         title: TileNamesEnum.Keleti_vasutvonal,
+        price: 20000,
+        rent: [2500, 5000, 10000, 20000],
       }),
     );
     this.#tiles.push(
@@ -176,6 +214,8 @@ export class Board {
         row: TileRowEnum.Left,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Petofi_ter,
+        price: 18000,
+        rent: [1400, 7000, 20000, 55000, 75000, 95000],
       }),
     );
     this.#tiles.push(
@@ -192,6 +232,8 @@ export class Board {
         row: TileRowEnum.Left,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Nagyerdo,
+        price: 18000,
+        rent: [1400, 7000, 20000, 55000, 75000, 95000],
       }),
     );
     this.#tiles.push(
@@ -200,6 +242,8 @@ export class Board {
         row: TileRowEnum.Left,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Bethlen_Gabor_utca,
+        price: 20000,
+        rent: [1600, 8000, 22000, 60000, 80000, 100000],
       }),
     );
   }
@@ -219,6 +263,8 @@ export class Board {
         row: TileRowEnum.Top,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Mora_park,
+        price: 22000,
+        rent: [1800, 9000, 25000, 70000, 87500, 105000],
       }),
     );
     this.#tiles.push(
@@ -235,6 +281,8 @@ export class Board {
         row: TileRowEnum.Top,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Oskola_utca,
+        price: 22000,
+        rent: [1800, 9000, 25000, 70000, 87500, 105000],
       }),
     );
     this.#tiles.push(
@@ -243,14 +291,18 @@ export class Board {
         row: TileRowEnum.Top,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Dom_ter,
+        price: 24000,
+        rent: [2000, 10000, 30000, 75000, 92500, 110000],
       }),
     );
     this.#tiles.push(
       new Tile({
         index: 25,
         row: TileRowEnum.Top,
-        type: TileTypesEnum.Property,
+        type: TileTypesEnum.Train,
         title: TileNamesEnum.Deli_vasutvonal,
+        price: 20000,
+        rent: [2500, 5000, 10000, 20000],
       }),
     );
     this.#tiles.push(
@@ -259,6 +311,8 @@ export class Board {
         row: TileRowEnum.Top,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Dobo_ter,
+        price: 26000,
+        rent: [2200, 11000, 33000, 80000, 97500, 115000],
       }),
     );
     this.#tiles.push(
@@ -267,14 +321,17 @@ export class Board {
         row: TileRowEnum.Top,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Almagyar_utca,
+        price: 26000,
+        rent: [2200, 11000, 33000, 80000, 97500, 115000],
       }),
     );
     this.#tiles.push(
       new Tile({
         index: 28,
         row: TileRowEnum.Top,
-        type: TileTypesEnum.Property,
+        type: TileTypesEnum.PublicWorks,
         title: TileNamesEnum.Vizmu,
+        price: 15000,
       }),
     );
     this.#tiles.push(
@@ -283,6 +340,8 @@ export class Board {
         row: TileRowEnum.Top,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Gardonyi_ut,
+        price: 28000,
+        rent: [2400, 12000, 36000, 85000, 102500, 120000],
       }),
     );
     this.#tiles.push(
@@ -302,6 +361,8 @@ export class Board {
         row: TileRowEnum.Right,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Kofarago_ter,
+        price: 30000,
+        rent: [2600, 13000, 39000, 90000, 110000, 127500],
       }),
     );
     this.#tiles.push(
@@ -310,6 +371,8 @@ export class Board {
         row: TileRowEnum.Right,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Ovaros,
+        price: 30000,
+        rent: [2600, 13000, 39000, 90000, 110000, 127500],
       }),
     );
     this.#tiles.push(
@@ -326,14 +389,18 @@ export class Board {
         row: TileRowEnum.Right,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Otvos_utca,
+        price: 32000,
+        rent: [2800, 15000, 45000, 100000, 120000, 140000],
       }),
     );
     this.#tiles.push(
       new Tile({
         index: 35,
         row: TileRowEnum.Right,
-        type: TileTypesEnum.Property,
+        type: TileTypesEnum.Train,
         title: TileNamesEnum.Nyugati_vasutvonal,
+        price: 20000,
+        rent: [2500, 5000, 10000, 20000],
       }),
     );
     this.#tiles.push(
@@ -350,6 +417,8 @@ export class Board {
         row: TileRowEnum.Right,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Vorosmarty_ter,
+        price: 35000,
+        rent: [3500, 17500, 50000, 110000, 130000, 150000],
       }),
     );
     this.#tiles.push(
@@ -358,6 +427,7 @@ export class Board {
         row: TileRowEnum.Right,
         type: TileTypesEnum.Tax,
         title: TileNamesEnum.Potado,
+        price: 10000,
       }),
     );
     this.#tiles.push(
@@ -366,6 +436,8 @@ export class Board {
         row: TileRowEnum.Right,
         type: TileTypesEnum.Property,
         title: TileNamesEnum.Dunakorzo,
+        price: 40000,
+        rent: [5000, 20000, 60000, 140000, 170000, 200000],
       }),
     );
   }
@@ -379,11 +451,12 @@ export class Board {
     document.getElementById("diceResults").textContent = `result: ${roll1} | ${roll2}`;
 
     this.#moveActivePlayer(sum);
+    this.#handlePlayerActions(sum);
 
     // update active player if not double 6
     if (roll1 + roll2 !== 12) {
-      document.getElementById("diceButton").style.display = "none";
-      document.getElementById("nextPlayerButton").style.display = "flex";
+      this.#boardDisplay.hideRollButton();
+      this.#boardDisplay.displayNextPlayerButton();
     }
   }
 
@@ -400,31 +473,156 @@ export class Board {
 
     if (targetIndex > 39) {
       targetIndex = targetIndex - 39;
+      activePlayer.wealth += 20000;
     }
 
-    let playerElement = document.getElementById(activePlayer.name);
-
-    document.getElementById(`Tile${targetIndex}players`).appendChild(playerElement);
+    this.#boardDisplay.updatePlayerLocationDisplay(activePlayer, targetIndex);
 
     activePlayer.position = targetIndex;
   }
 
   #nextPlayer() {
-    let previousPlayerIndex = this.#activePlayerIndex;
+    let previousPlayer = this.#players[this.#activePlayerIndex];
 
     this.#activePlayerIndex === this.#players.length - 1 ? this.#activePlayerIndex = 0 : this.#activePlayerIndex++;
 
+    let activePlayer = this.#players[this.#activePlayerIndex];
+
     setTimeout( () => {
-      alert(`${this.#players[previousPlayerIndex].name}'s turn ended.\n\nIt's ${this.#players[this.#activePlayerIndex].name}'s turn!`);
+      alert(`${previousPlayer.name}'s turn ended.\n\nIt's ${activePlayer.name}'s turn!`);
     }, 0);
 
-    document.getElementById("nextPlayerButton").style.display = "none";
-    document.getElementById("diceButton").style.display = "flex";
+    this.#boardDisplay.hideNextPlayerButton();
 
-    this.#updatePlayerInfoDisplay();
+    if (!activePlayer.inPrison) {
+      this.#boardDisplay.displayRollButton();
+    } else {
+      this.#boardDisplay.displayPayPrisonButton();
+      this.#boardDisplay.displayRollPrisonButton();
+
+      if (activePlayer.freeEscapeCounter > 0) {
+        this.#boardDisplay.displayUsePrisonCardButton();
+      }
+    }
+
+    this.#boardDisplay.updatePlayerInfoDisplay({
+      name: `${activePlayer.name}`,
+      wealth: activePlayer.wealth,
+      freeEscapeCounter: activePlayer.freeEscapeCounter
+    });
+    this.#boardDisplay.hideBuyPropertyButton();
   }
 
-  #updatePlayerInfoDisplay() {
 
+  /**
+   *
+   * @param {number} sum
+   */
+  #handlePlayerActions(sum) {
+    let activePlayer = this.#players[this.#activePlayerIndex];
+    let activeTile = this.#tiles[activePlayer.position];
+
+    // if tile is property and owned by the bank, enable the buy button
+    if (activeTile.type === TileTypesEnum.Property && activeTile.owner === OwnersEnum.Bank && activePlayer.wealth >= activeTile.price) {
+      this.#boardDisplay.displayBuyPropertyButton();
+    }
+
+    // if tile is tax, pay the tile's price
+    if (activeTile.type === TileTypesEnum.Tax) {
+      activePlayer.wealth -= activeTile.price;
+    }
+
+    // if tile is property and owned by a different player
+    if (activeTile.type === TileTypesEnum.Property && activeTile.owner !== OwnersEnum.Bank && activeTile.owner !== activePlayer.name) {
+      let rent = activeTile.rent[activeTile.level];
+      let ownerPlayer = this.#players.filter((player) => player.name === activeTile.owner)[0];
+
+      activePlayer.wealth -= rent;
+      ownerPlayer.wealth += rent;
+    }
+
+    // if tile is a train and owned by a different player
+    if (activeTile.type === TileTypesEnum.Train && activeTile.owner !== OwnersEnum.Bank && activeTile.owner !== activePlayer.name) {
+      let trainsOwned = this.#tiles.filter(tile => tile.owner === activeTile.owner).length;
+      let rent = activeTile.rent[trainsOwned];
+      let ownerPlayer = this.#players.filter((player) => player.name === activeTile.owner)[0];
+
+      activePlayer.wealth -= rent;
+      ownerPlayer.wealth += rent;
+    }
+
+    // if tile is a public works and owned by a different player
+    if (activeTile.type === TileTypesEnum.PublicWorks && activeTile.owner !== OwnersEnum.Bank && activeTile.owner !== activePlayer.name) {
+      let publicWorksOwned = this.#tiles.filter(tile => tile.owner === activeTile.owner).length;
+      let rent = publicWorksOwned === 2 ? sum * 400 : sum * 1000;
+      let ownerPlayer = this.#players.filter((player) => player.name === activeTile.owner)[0];
+
+      activePlayer.wealth -= rent;
+      ownerPlayer.wealth += rent;
+    }
+
+    // if tile is Go to Prison
+    if (activeTile.type === TileTypesEnum.GoToPrison) {
+      let prisonTileIndex = this.#tiles.filter(tile => tile.type === TileTypesEnum.GoToPrison).index;
+      let activePlayer = this.#players[this.#activePlayerIndex];
+
+      activePlayer.inPrison(true);
+      activePlayer.prisonCountdown = 3;
+      activePlayer.position = prisonTileIndex;
+
+      this.#boardDisplay.updatePlayerInfoDisplay({
+        prisonCountdown: 3,
+      });
+      this.#boardDisplay.updatePlayerLocationDisplay(activePlayer, prisonTileIndex);
+    }
+
+    if (activeTile.type === TileTypesEnum.Prison && activePlayer.inPrison) {
+
+    }
+
+    this.#boardDisplay.updatePlayerInfoDisplay({
+      name: `${activePlayer.name}`,
+      wealth: activePlayer.wealth
+  });
+
+    this.#checkPlayerWealth(activePlayer);
+  }
+
+  #buyProperty() {
+    let activePlayer = this.#players[this.#activePlayerIndex];
+    let activeTile = this.#tiles[activePlayer.position];
+
+    activePlayer.wealth -= activeTile.price;
+    activeTile.owner = OwnersEnum[activePlayer.name];
+    activeTile.level = 0;
+
+    document.getElementById(`Tile${activeTile.index}title`).style.background = activePlayer.color;
+    document.getElementById(`Tile${activeTile.index}title`).style.color = "white";
+
+    this.#boardDisplay.hideBuyPropertyButton();
+
+    this.#boardDisplay.updatePlayerInfoDisplay(`${this.#players[this.#activePlayerIndex].name}`, this.#players[this.#activePlayerIndex].wealth);
+  }
+
+  #payPrison() {
+
+  }
+
+  #rollPrison() {
+
+  }
+
+  #usePrisonCard() {
+
+  }
+
+  /**
+   *
+   * @param {Player} activePlayer
+   */
+  #checkPlayerWealth(activePlayer) {
+    if (activePlayer.wealth < 0) {
+      this.#gameGoing = false;
+    }
   }
 }

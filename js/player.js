@@ -4,15 +4,21 @@ export class Player {
   #position;
   #properties;
   #wealth;
+  #inPrison;
+  #prisonCountdown;
+  #freeEscapeCounter;
 
   /**
    *
-   * @param {string} name
-   * @param {string} color
+   * @param {String} name
+   * @param {String} color
    */
   constructor({name, color}) {
     this.#position = 0;
     this.#properties = [];
+    this.#wealth = 150000;
+    this.#inPrison = false;
+    this.#freeEscapeCounter = 0;
     this.#name = name;
     this.#color = color;
   }
@@ -37,6 +43,18 @@ export class Player {
     return this.#wealth;
   }
 
+  get inPrison() {
+    return this.#inPrison;
+  }
+
+  get prisonCountdown() {
+    return this.#prisonCountdown;
+  }
+
+  get freeEscapeCounter() {
+    return this.#freeEscapeCounter;
+  }
+
   /**
    *
    * @param {number} position
@@ -59,5 +77,29 @@ export class Player {
    */
   set wealth(wealth) {
     this.#wealth = wealth;
+  }
+
+  /**
+   *
+   * @param {boolean} inPrison
+   */
+  set inPrison(inPrison) {
+    this.#inPrison = inPrison;
+  }
+
+  /**
+   *
+   * @param {number} prisonCountdown
+   */
+  set prisonCountdown(prisonCountdown) {
+    this.#prisonCountdown = prisonCountdown;
+  }
+
+  /**
+   *
+   * @param {number} freeEscapeCounter
+   */
+  set freeEscapeCounter(freeEscapeCounter) {
+    this.#freeEscapeCounter = freeEscapeCounter;
   }
 }
