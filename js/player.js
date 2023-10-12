@@ -6,7 +6,10 @@ export class Player {
   #wealth;
   #inPrison;
   #prisonCountdown;
-  #freeEscapeCounter;
+  /**
+   * @type {Card[]}
+   */
+  #freeEscapeCards;
 
   /**
    *
@@ -14,13 +17,35 @@ export class Player {
    * @param {String} color
    */
   constructor({name, color}) {
+    this.#name = name;
+    this.#color = color;
+
     this.#position = 0;
     this.#properties = [];
     this.#wealth = 150000;
     this.#inPrison = false;
-    this.#freeEscapeCounter = 0;
-    this.#name = name;
-    this.#color = color;
+    this.#freeEscapeCards = [];
+  }
+
+  /**
+   *
+   * @param {Card} card
+   */
+  addFreeEscapeCard(card) {
+    this.#freeEscapeCards.push(card);
+  }
+
+  /**
+   *
+   * @param {String | undefined} type
+   * @returns Card
+   */
+  removeFreeEscapeCard(type) {
+    if (this.#freeEscapeCards.length === 1) {
+      return this.#freeEscapeCards.pop();
+    } else {
+      return (this.#freeEscapeCards.filter(card => card.type === type)).pop();
+    }
   }
 
   get name() {
@@ -51,8 +76,8 @@ export class Player {
     return this.#prisonCountdown;
   }
 
-  get freeEscapeCounter() {
-    return this.#freeEscapeCounter;
+  get freeEscapeCards() {
+    return this.#freeEscapeCards;
   }
 
   /**
@@ -93,13 +118,5 @@ export class Player {
    */
   set prisonCountdown(prisonCountdown) {
     this.#prisonCountdown = prisonCountdown;
-  }
-
-  /**
-   *
-   * @param {number} freeEscapeCounter
-   */
-  set freeEscapeCounter(freeEscapeCounter) {
-    this.#freeEscapeCounter = freeEscapeCounter;
   }
 }

@@ -1,16 +1,26 @@
 import { Board } from "./board.js";
 import {Player} from "./player.js";
+import {Deck} from "./deck.js";
+import {DeckTypeEnum} from "./enums.js";
 
 export class Game {
 
   #game = false;
   #players;
+  #luckyDeck;
+  #surpriseDeck;
   #board;
 
   start() {
     this.#players = [];
     this.#createPlayers();
-    this.#board = new Board(this.#players);
+    this.#luckyDeck = new Deck(DeckTypeEnum.Lucky);
+    this.#surpriseDeck = new Deck(DeckTypeEnum.Surprise);
+    this.#board = new Board({
+      players: this.#players,
+      luckyDeck: this.#luckyDeck,
+      surpriseDeck: this.#surpriseDeck
+    });
 
     this.#game = true;
 

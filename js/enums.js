@@ -67,5 +67,47 @@ let TileNamesEnum;
   TileNamesEnum['Meglepeteskartya'] = 'Meglepetés kártya';
 })(TileNamesEnum || (TileNamesEnum = {}));
 
+let DeckTypeEnum;
+(function (DeckTypeEnum) {
+  DeckTypeEnum['Surprise'] = 'Surprise';
+  DeckTypeEnum['Lucky'] = 'Lucky';
+})(DeckTypeEnum || (DeckTypeEnum = {}));
 
-export { OwnersEnum, TileRowEnum, TileTypesEnum, TileNamesEnum };
+let CardTypeEnum;
+(function (DeckTypeEnum) {
+  CardTypeEnum['Surprise'] = 'Surprise';
+  CardTypeEnum['Lucky'] = 'Lucky';
+})(CardTypeEnum || (CardTypeEnum = {}));
+
+let CardEffectEnum;
+(function (DeckTypeEnum) {
+  CardEffectEnum['Addition'] = 'Addition';
+  CardEffectEnum['Subtraction'] = 'Subtraction';
+  CardEffectEnum['Other'] = 'Other';
+})(CardEffectEnum || (CardEffectEnum = {}));
+
+let CardsTextEnum;
+(function (DeckTypeEnum) {
+  CardsTextEnum['FreeEscape'] = 'Ingyen szabadulhatsz a börtönből.';
+  CardsTextEnum['PayByPropertySmall'] = 'Fizess minden házad után 2500 Ft-ot és minden szállodád után 10.000 Ft-ot.';
+  CardsTextEnum['PayByPropertyBig'] = 'Fizess minden házad után 5000 Ft-ot és minden szállodád után 20.000 Ft-ot.';
+  CardsTextEnum['Fizess1'] = 'Fizess 1000 Ft-ot.';
+  CardsTextEnum['Fizess2'] = 'Fizess 2000 Ft-ot.';
+  CardsTextEnum['Fizess3'] = 'Fizess 3000 Ft-ot.';
+  CardsTextEnum['Fizess4'] = 'Fizess 4000 Ft-ot.';
+  CardsTextEnum['Fizess5'] = 'Fizess 5000 Ft-ot.';
+  CardsTextEnum['Fizess6'] = 'Fizess 6000 Ft-ot.';
+  CardsTextEnum['Fizess7'] = 'Fizess 8000 Ft-ot.';
+  CardsTextEnum['Fizess8'] = 'Fizess 10.000 Ft-ot.';
+  CardsTextEnum['Kapsz1'] = 'Kapsz 1000 Ft-ot.';
+  CardsTextEnum['Kapsz2'] = 'Kapsz 2000 Ft-ot.';
+  CardsTextEnum['Kapsz3'] = 'Kapsz 3000 Ft-ot.';
+  CardsTextEnum['Kapsz4'] = 'Kapsz 4000 Ft-ot.';
+  CardsTextEnum['Kapsz5'] = 'Kapsz 5000 Ft-ot.';
+  CardsTextEnum['Kapsz6'] = 'Kapsz 6000 Ft-ot.';
+  CardsTextEnum['Kapsz7'] = 'Kapsz 8000 Ft-ot.';
+  CardsTextEnum['Kapsz8'] = 'Kapsz 9000 Ft-ot.';
+  CardsTextEnum['Kapsz9'] = 'Kapsz 10.000 Ft-ot.';
+})(CardsTextEnum || (CardsTextEnum = {}));
+
+export { OwnersEnum, TileRowEnum, TileTypesEnum, TileNamesEnum, DeckTypeEnum, CardTypeEnum, CardEffectEnum, CardsTextEnum};

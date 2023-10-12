@@ -1,12 +1,21 @@
 import { Tile } from "./tile.js";
-import {OwnersEnum, TileNamesEnum, TileRowEnum, TileTypesEnum} from "./enums.js";
+import {
+  CardEffectEnum,
+  CardsTextEnum,
+  OwnersEnum,
+  TileNamesEnum,
+  TileRowEnum,
+  TileTypesEnum,
+} from "./enums.js";
 import { BoardDisplay } from "./boardDisplay.js";
-import {Util} from "./util.js";
+import { Util } from "./util.js";
 
 export class Board {
   #boardDisplay;
-  #domElement;
+  #board;
   #tiles;
+  #luckyDeck;
+  #surpriseDeck;
   #players;
   #activePlayerIndex;
   #gameGoing;
@@ -14,11 +23,15 @@ export class Board {
   /**
    *
    * @param {Player[]} players
+   * @param {Deck} luckyDeck
+   * @param {Deck} surpriseDeck
    */
-  constructor(players) {
+  constructor({ players, luckyDeck, surpriseDeck }) {
     this.#players = players;
+    this.#luckyDeck = luckyDeck;
+    this.#surpriseDeck = surpriseDeck;
     this.#boardDisplay = new BoardDisplay();
-    this.#domElement = document.createElement("DIV");
+    this.#board = document.createElement("DIV");
     this.#gameGoing = true;
   }
 
@@ -26,22 +39,23 @@ export class Board {
     this.#tiles = [];
     this.#createTiles();
     this.#boardDisplay.setup({
-      parentElement: this.#domElement,
+      parentElement: this.#board,
+      players: this.#players,
       tiles: this.#tiles,
       rollBtnCallback: this.#roll.bind(this),
       nextPlayerBtnCallback: this.#nextPlayer.bind(this),
       buyPropertyBtnCallback: this.#buyProperty.bind(this),
       payPrisonBtnCallback: this.#payPrison.bind(this),
       rollPrisonBtnCallback: this.#rollPrison.bind(this),
-      usePrisonCardBtnCallback: this.#usePrisonCard.bind(this)
+      usePrisonCardBtnCallback: this.#usePrisonCard.bind(this),
     });
+    this.#boardDisplay.updateSurpriseDeckDisplay(this.#surpriseDeck.cards.length, this.#surpriseDeck.usedCards.length);
+    this.#boardDisplay.updateLuckyDeckDisplay(this.#luckyDeck.cards.length, this.#luckyDeck.usedCards.length);
     this.#boardDisplay.placePlayers(this.#players);
     this.#activePlayerIndex = 0;
-    this.#boardDisplay.updatePlayerInfoDisplay({
-      name: `${this.#players[this.#activePlayerIndex].name}`,
-      wealth: this.#players[this.#activePlayerIndex].wealth,
-      freeEscapeCounter: this.#players[this.#activePlayerIndex].freeEscapeCounter,
-  });
+    this.#boardDisplay.updatePlayerInfoDisplay(this.#players);
+    this.#boardDisplay.setPlayerActive(this.#players[this.#activePlayerIndex]);
+    this.#boardDisplay.addGameHistory('Game Started');
 
     //TODO return gameGoing as false on game finish
     //return this.#gameGoing;
@@ -445,13 +459,16 @@ export class Board {
   #roll() {
     let util = new Util();
     let roll1 = util.random(1, 6);
+    //let roll1 = 5;
     let roll2 = util.random(1, 6);
+    //let roll2 = 5;
     let sum = roll1 + roll2;
 
-    document.getElementById("diceResults").textContent = `result: ${roll1} | ${roll2}`;
+    this.#boardDisplay.displayRollResults(roll1, roll2);
 
     this.#moveActivePlayer(sum);
     this.#handlePlayerActions(sum);
+    this.#boardDisplay.addGameHistory(`${this.#players[this.#activePlayerIndex].name} rolled ${roll1} | ${roll2}`);
 
     // update active player if not double 6
     if (roll1 + roll2 !== 12) {
@@ -484,13 +501,20 @@ export class Board {
   #nextPlayer() {
     let previousPlayer = this.#players[this.#activePlayerIndex];
 
-    this.#activePlayerIndex === this.#players.length - 1 ? this.#activePlayerIndex = 0 : this.#activePlayerIndex++;
+    this.#activePlayerIndex === this.#players.length - 1
+      ? (this.#activePlayerIndex = 0)
+      : this.#activePlayerIndex++;
 
     let activePlayer = this.#players[this.#activePlayerIndex];
 
-    setTimeout( () => {
-      alert(`${previousPlayer.name}'s turn ended.\n\nIt's ${activePlayer.name}'s turn!`);
+    setTimeout(() => {
+      alert(
+        `${previousPlayer.name}'s turn ended.\n\nIt's ${activePlayer.name}'s turn!`,
+      );
     }, 0);
+
+    this.#boardDisplay.setPlayerInactive(previousPlayer);
+    this.#boardDisplay.setPlayerActive(activePlayer);
 
     this.#boardDisplay.hideNextPlayerButton();
 
@@ -500,19 +524,14 @@ export class Board {
       this.#boardDisplay.displayPayPrisonButton();
       this.#boardDisplay.displayRollPrisonButton();
 
-      if (activePlayer.freeEscapeCounter > 0) {
+      if (activePlayer.freeEscapeCards.length > 0) {
         this.#boardDisplay.displayUsePrisonCardButton();
       }
     }
 
-    this.#boardDisplay.updatePlayerInfoDisplay({
-      name: `${activePlayer.name}`,
-      wealth: activePlayer.wealth,
-      freeEscapeCounter: activePlayer.freeEscapeCounter
-    });
+    this.#boardDisplay.updatePlayerInfoDisplay(this.#players);
     this.#boardDisplay.hideBuyPropertyButton();
   }
-
 
   /**
    *
@@ -523,7 +542,13 @@ export class Board {
     let activeTile = this.#tiles[activePlayer.position];
 
     // if tile is property and owned by the bank, enable the buy button
-    if (activeTile.type === TileTypesEnum.Property && activeTile.owner === OwnersEnum.Bank && activePlayer.wealth >= activeTile.price) {
+    if (
+      (activeTile.type === TileTypesEnum.Property ||
+        activeTile.type === TileTypesEnum.Train ||
+        activeTile.type === TileTypesEnum.PublicWorks) &&
+      activeTile.owner === OwnersEnum.Bank &&
+      activePlayer.wealth >= activeTile.price
+    ) {
       this.#boardDisplay.displayBuyPropertyButton();
     }
 
@@ -533,29 +558,51 @@ export class Board {
     }
 
     // if tile is property and owned by a different player
-    if (activeTile.type === TileTypesEnum.Property && activeTile.owner !== OwnersEnum.Bank && activeTile.owner !== activePlayer.name) {
+    if (
+      activeTile.type === TileTypesEnum.Property &&
+      activeTile.owner !== OwnersEnum.Bank &&
+      activeTile.owner !== activePlayer.name
+    ) {
       let rent = activeTile.rent[activeTile.level];
-      let ownerPlayer = this.#players.filter((player) => player.name === activeTile.owner)[0];
+      let ownerPlayer = this.#players.filter(
+        (player) => player.name === activeTile.owner,
+      )[0];
 
       activePlayer.wealth -= rent;
       ownerPlayer.wealth += rent;
     }
 
     // if tile is a train and owned by a different player
-    if (activeTile.type === TileTypesEnum.Train && activeTile.owner !== OwnersEnum.Bank && activeTile.owner !== activePlayer.name) {
-      let trainsOwned = this.#tiles.filter(tile => tile.owner === activeTile.owner).length;
+    if (
+      activeTile.type === TileTypesEnum.Train &&
+      activeTile.owner !== OwnersEnum.Bank &&
+      activeTile.owner !== activePlayer.name
+    ) {
+      let trainsOwned = this.#tiles.filter(
+        (tile) => tile.owner === activeTile.owner,
+      ).length;
       let rent = activeTile.rent[trainsOwned];
-      let ownerPlayer = this.#players.filter((player) => player.name === activeTile.owner)[0];
+      let ownerPlayer = this.#players.filter(
+        (player) => player.name === activeTile.owner,
+      )[0];
 
       activePlayer.wealth -= rent;
       ownerPlayer.wealth += rent;
     }
 
     // if tile is a public works and owned by a different player
-    if (activeTile.type === TileTypesEnum.PublicWorks && activeTile.owner !== OwnersEnum.Bank && activeTile.owner !== activePlayer.name) {
-      let publicWorksOwned = this.#tiles.filter(tile => tile.owner === activeTile.owner).length;
+    if (
+      activeTile.type === TileTypesEnum.PublicWorks &&
+      activeTile.owner !== OwnersEnum.Bank &&
+      activeTile.owner !== activePlayer.name
+    ) {
+      let publicWorksOwned = this.#tiles.filter(
+        (tile) => tile.owner === activeTile.owner,
+      ).length;
       let rent = publicWorksOwned === 2 ? sum * 400 : sum * 1000;
-      let ownerPlayer = this.#players.filter((player) => player.name === activeTile.owner)[0];
+      let ownerPlayer = this.#players.filter(
+        (player) => player.name === activeTile.owner,
+      )[0];
 
       activePlayer.wealth -= rent;
       ownerPlayer.wealth += rent;
@@ -563,27 +610,107 @@ export class Board {
 
     // if tile is Go to Prison
     if (activeTile.type === TileTypesEnum.GoToPrison) {
-      let prisonTileIndex = this.#tiles.filter(tile => tile.type === TileTypesEnum.GoToPrison).index;
+      let prisonTileIndex = this.#tiles.filter(
+        (tile) => tile.type === TileTypesEnum.Prison
+      )[0].index;
       let activePlayer = this.#players[this.#activePlayerIndex];
 
-      activePlayer.inPrison(true);
+      activePlayer.inPrison = true;
       activePlayer.prisonCountdown = 3;
       activePlayer.position = prisonTileIndex;
 
-      this.#boardDisplay.updatePlayerInfoDisplay({
-        prisonCountdown: 3,
-      });
-      this.#boardDisplay.updatePlayerLocationDisplay(activePlayer, prisonTileIndex);
+      this.#boardDisplay.updateAndDisplayPrisonCounter(activePlayer);
+      this.#boardDisplay.updatePlayerInfoDisplay(this.#players);
+      this.#boardDisplay.updatePlayerLocationDisplay(
+        activePlayer,
+        prisonTileIndex,
+      );
     }
 
+    // Person is in prison
     if (activeTile.type === TileTypesEnum.Prison && activePlayer.inPrison) {
-
+      console.log('in prison');
     }
 
-    this.#boardDisplay.updatePlayerInfoDisplay({
-      name: `${activePlayer.name}`,
-      wealth: activePlayer.wealth
-  });
+    // draw a surprise card
+    if (activeTile.type === TileTypesEnum.SurpriseCard) {
+      let drawnCard = this.#surpriseDeck.draw();
+
+      if (drawnCard.effect === CardEffectEnum.Other) {
+        if (drawnCard.text === CardsTextEnum.FreeEscape) {
+          activePlayer.addFreeEscapeCard(drawnCard);
+        }
+      }
+
+      if (drawnCard.effect === CardEffectEnum.Addition) {
+        activePlayer.wealth += drawnCard.value;
+      }
+
+      if (drawnCard.effect === CardEffectEnum.Subtraction) {
+        activePlayer.wealth -= drawnCard.value;
+      }
+
+      this.#boardDisplay.addGameHistory(`${activePlayer.name} húzott egy Meglepetéskártyát:`);
+      this.#boardDisplay.addGameHistory(`${drawnCard.text}`);
+    }
+
+    // draw a lucky card
+    if (activeTile.type === TileTypesEnum.LuckyCard) {
+      let drawnCard = this.#luckyDeck.draw();
+
+      if (drawnCard.effect === CardEffectEnum.Other) {
+        if (drawnCard.text === CardsTextEnum.FreeEscape) {
+          activePlayer.addFreeEscapeCard(drawnCard);
+        }
+
+        if (drawnCard.text === CardsTextEnum.PayByPropertySmall) {
+          let ownedProperties = this.#tiles.filter(tile => tile.owner === OwnersEnum[activePlayer.name]);
+          let rent = 0;
+
+          ownedProperties.forEach(property => {
+            if (property.level > 0 && property.level < 5) {
+              rent += 2500 * property.level;
+            }
+
+            if (property.level === 5) {
+              rent += 10000;
+            }
+          });
+
+          activePlayer.wealth -= rent;
+        }
+
+        if (drawnCard.text === CardsTextEnum.PayByPropertyBig) {
+          let ownedProperties = this.#tiles.filter(tile => tile.owner === OwnersEnum[activePlayer.name]);
+          let rent = 0;
+
+          ownedProperties.forEach(property => {
+            if (property.level > 0 && property.level < 5) {
+              rent += 5000 * property.level;
+            }
+
+            if (property.level === 5) {
+              rent += 20000;
+            }
+          });
+
+          activePlayer.wealth -= rent;
+        }
+      }
+
+      if (drawnCard.effect === CardEffectEnum.Addition) {
+        activePlayer.wealth += drawnCard.value;
+      }
+
+      if (drawnCard.effect === CardEffectEnum.Subtraction) {
+        activePlayer.wealth -= drawnCard.value;
+      }
+
+      this.#boardDisplay.addGameHistory(`${activePlayer.name} húzott egy Szerencsekártyát:`);
+      this.#boardDisplay.addGameHistory(`${drawnCard.text}`);
+    }
+
+    this.#boardDisplay.updatePlayerInfoDisplay(this.#players);
 
     this.#checkPlayerWealth(activePlayer);
   }
@@ -596,24 +723,32 @@ export class Board {
     activeTile.owner = OwnersEnum[activePlayer.name];
     activeTile.level = 0;
 
-    document.getElementById(`Tile${activeTile.index}title`).style.background = activePlayer.color;
-    document.getElementById(`Tile${activeTile.index}title`).style.color = "white";
+    document.getElementById(`Tile${activeTile.index}title`).style.background =
+      activePlayer.color;
+    document.getElementById(`Tile${activeTile.index}title`).style.color =
+      "white";
 
     this.#boardDisplay.hideBuyPropertyButton();
 
-    this.#boardDisplay.updatePlayerInfoDisplay(`${this.#players[this.#activePlayerIndex].name}`, this.#players[this.#activePlayerIndex].wealth);
+    this.#boardDisplay.updatePlayerInfoDisplay(this.#players);
   }
 
   #payPrison() {
+    let activePlayer = this.#players[this.#activePlayerIndex];
 
+    this.#boardDisplay.hidePrisonCounter(activePlayer);
   }
 
   #rollPrison() {
+    let activePlayer = this.#players[this.#activePlayerIndex];
 
+    this.#boardDisplay.hidePrisonCounter(activePlayer);
   }
 
   #usePrisonCard() {
+    let activePlayer = this.#players[this.#activePlayerIndex];
 
+    this.#boardDisplay.hidePrisonCounter(activePlayer);
   }
 
   /**
