@@ -1,56 +1,35 @@
-import { Tile } from "./tile.js";
-import { TileNamesEnum, TileRowEnum } from "./enums.js";
+import { Tile } from "../enitity/tile.js";
+import { TileNamesEnum, TileRowEnum } from "../enums.js";
 
 export class BoardDisplay {
+  #board
+
+  constructor() {
+    this.#board = document.createElement("DIV");
+    this.#board.id = "board";
+  }
+
   /**
    *
-   * @param {HTMLElement} parentElement
-   * @param {Player[]} players
    * @param {Tile[]} tiles
-   * @param {Function} rollBtnCallback
-   * @param {Function} nextPlayerBtnCallback
-   * @param {Function} buyPropertyBtnCallback
-   * @param {Function} payPrisonBtnCallback
-   * @param {Function} rollPrisonBtnCallback
-   * @param {Function} usePrisonCardBtnCallback
    */
-  setup({
-    parentElement,
-    players,
-    tiles,
-    rollBtnCallback,
-    nextPlayerBtnCallback,
-    buyPropertyBtnCallback,
-    payPrisonBtnCallback,
-    rollPrisonBtnCallback,
-    usePrisonCardBtnCallback
-  }) {
-    this.#drawBoard(parentElement);
+  setup(tiles) {
+    this.#drawBoard(this.#board);
     this.#drawTopRow(
-      parentElement,
+      this.#board,
       tiles.filter((tile) => tile.row === TileRowEnum.Top),
     );
     this.#drawLeftSide(
-      parentElement,
+      this.#board,
       tiles.filter((tile) => tile.row === TileRowEnum.Left),
     );
     this.#drawRightSide(
-      parentElement,
+      this.#board,
       tiles.filter((tile) => tile.row === TileRowEnum.Right),
     );
     this.#drawBottomRow(
-      parentElement,
+      this.#board,
       tiles.filter((tile) => tile.row === TileRowEnum.Bottom),
-    );
-    this.#drawControls(
-      parentElement,
-      players,
-      rollBtnCallback,
-      nextPlayerBtnCallback,
-      buyPropertyBtnCallback,
-      payPrisonBtnCallback,
-      rollPrisonBtnCallback,
-      usePrisonCardBtnCallback
     );
   }
 
@@ -211,7 +190,7 @@ export class BoardDisplay {
    * @param {Function} rollPrisonBtnCallback
    * @param {Function} usePrisonCardBtnCallback
    */
-  #drawControls(
+  /*#drawControls(
     parentElement,
     players,
     rollBtnCallback,
@@ -238,14 +217,14 @@ export class BoardDisplay {
     this.#drawLuckyDeck(controlArea);
 
     this.#drawInfoArea(controlArea, players, buyPropertyBtnCallback, payPrisonBtnCallback, rollPrisonBtnCallback, usePrisonCardBtnCallback);
-  }
+  }*/
 
-  /**
+ /* /!**
    *
    * @param {HTMLElement} parentElement
    * @param {Function} rollBtnCallback
    * @param {Function} nextPlayerBtnCallback
-   */
+   *!/
   #drawDiceArea(parentElement, rollBtnCallback, nextPlayerBtnCallback) {
     const diceContainer = document.createElement("DIV");
     diceContainer.id = "diceContainer";
@@ -295,12 +274,12 @@ export class BoardDisplay {
     diceButton.addEventListener("click", rollBtnCallback);
 
     diceContainer.appendChild(diceButton);
-  }
+  }*/
 
-  /**
+/*  /!**
    *
    * @param {HTMLElement} parentElement
-   */
+   *!/
   #drawSurpriseDeck(parentElement) {
     const surpriseDeck = document.createElement("DIV");
     surpriseDeck.style.gridArea = "surprise";
@@ -351,10 +330,10 @@ export class BoardDisplay {
     surpriseDeck.appendChild(surpriseUsedCardsCounter);
   }
 
-  /**
+  /!**
    *
    * @param {HTMLElement} parentElement
-   */
+   *!/
   #drawLuckyDeck(parentElement) {
     const luckyDeck = document.createElement("DIV");
     luckyDeck.style.gridArea = "lucky";
@@ -403,9 +382,9 @@ export class BoardDisplay {
     luckyUsedCardsCounter.style.justifySelf = "left";
     luckyUsedCardsCounter.textContent = "0";
     luckyDeck.appendChild(luckyUsedCardsCounter);
-  }
+  }*/
 
-  /**
+/*  /!**
    *
    * @param {HTMLElement} parentElement
    * @param {Player[]} players
@@ -413,7 +392,7 @@ export class BoardDisplay {
    * @param {Function} payPrisonBtnCallback
    * @param {Function} rollPrisonBtnCallback
    * @param {Function} usePrisonCardBtnCallback
-   */
+   *!/
   #drawInfoArea(parentElement, players, buyPropertyBtnCallback, payPrisonBtnCallback, rollPrisonBtnCallback, usePrisonCardBtnCallback) {
     const infoContainer = document.createElement("DIV");
     infoContainer.style.gridArea = "info";
@@ -452,11 +431,11 @@ export class BoardDisplay {
     infoContainer.appendChild(history);
   }
 
-  /**
+  /!**
    *
    * @param {HTMLElement} parent
    * @param {Player[]} players
-   */
+   *!/
   #createInfoBarElements(parent, players) {
     players.forEach(player => {
       const playerContainer = document.createElement("DIV");
@@ -497,14 +476,14 @@ export class BoardDisplay {
     });
   }
 
-  /**
+  /!**
    *
    * @param {HTMLElement} parent
    * @param {Function} buyPropertyBtnCallback
    * @param {Function} payPrisonBtnCallback
    * @param {Function} rollPrisonBtnCallback
    * @param {Function} usePrisonCardBtnCallback
-   */
+   *!/
   #createActionButtons(parent, buyPropertyBtnCallback, payPrisonBtnCallback, rollPrisonBtnCallback, usePrisonCardBtnCallback) {
     const buyPropertyButton = document.createElement("BUTTON");
     buyPropertyButton.id = "buyPropertyButton";
@@ -552,12 +531,12 @@ export class BoardDisplay {
     usePrisonCardButton.textContent = "Use card!";
     usePrisonCardButton.addEventListener("click", usePrisonCardBtnCallback);
     parent.appendChild(usePrisonCardButton);
-  }
+  }*/
 
-  /**
+/*  /!**
    *
    * @param {Player[]} players
-   */
+   *!/
   placePlayers(players) {
     players.forEach((player) => {
       let playerElement = document.createElement("SPAN");
@@ -569,12 +548,12 @@ export class BoardDisplay {
         .getElementById(`Tile${player.position}players`)
         .appendChild(playerElement);
     });
-  }
+  }*/
 
-  /**
+/*  /!**
    *
    * @param {Player[]} players
-   */
+   *!/
   updatePlayerInfoDisplay(players) {
     players.forEach(player => {
       document.getElementById(`${player.name}Wealth`).textContent = `Wealth: ${player.wealth} Ft`;
@@ -582,38 +561,38 @@ export class BoardDisplay {
     });
   }
 
-  /**
+  /!**
    *
    * @param {Player} player
-   */
+   *!/
   setPlayerActive(player) {
     document.getElementById(`active${player.name}`).style.display = "initial";
   }
 
-  /**
+  /!**
    *
    * @param {Player} player
-   */
+   *!/
   setPlayerInactive(player) {
     document.getElementById(`active${player.name}`).style.display = "none";
   }
 
-  /**
+  /!**
    *
    * @param {Player} player
-   */
+   *!/
   updateAndDisplayPrisonCounter(player) {
     document.getElementById(`${player.name}PrisonCountdown`).textContent = `Turns left in prison:  ${player.prisonCountdown}`;
     document.getElementById(`${player.name}PrisonCountdown`).style.display = "initial";
   }
 
-  /**
+  /!**
    *
    * @param {Player} player
-   */
+   *!/
   hidePrisonCounter(player) {
     document.getElementById(`${player.name}PrisonCountdown`).style.display = "none";
-  }
+  }*/
 
   /**
    *
@@ -628,53 +607,38 @@ export class BoardDisplay {
       .appendChild(playerElement);
   }
 
-  /**
+/*  /!**
    *
    * @param {number} surpriseDeckCounter
    * @param {number} surpriseUsedCardsCounter
-   */
+   *!/
   updateSurpriseDeckDisplay(surpriseDeckCounter, surpriseUsedCardsCounter) {
     document.getElementById('surpriseDeckCounter').textContent = surpriseDeckCounter + '';
     document.getElementById('surpriseUsedCardsCounter').textContent = surpriseUsedCardsCounter + '';
   }
 
-  /**
+  /!**
    *
    * @param {number} luckyDeckCounter
    * @param {number} luckyUsedCardsCounter
-   */
+   *!/
   updateLuckyDeckDisplay(luckyDeckCounter, luckyUsedCardsCounter) {
     document.getElementById('luckyDeckCounter').textContent = luckyDeckCounter + '';
     document.getElementById('luckyUsedCardsCounter').textContent = luckyUsedCardsCounter + '';
-  }
+  }*/
 
-  /**
-   *
-   * @param {number} roll1
-   * @param {number} roll2
-   */
-  displayRollResults(roll1, roll2) {
-    document.getElementById("diceResults").textContent = `result: ${roll1} | ${roll2}`;
-  }
 
-  /**
+
+/*  /!**
    *
    * @param {String} text
-   */
+   *!/
   addGameHistory(text) {
     let gameEvent = document.createElement("SPAN");
     gameEvent.textContent = text;
 
     document.getElementById("gameHistory").appendChild(gameEvent);
-  }
-
-  hideRollButton() {
-    document.getElementById("diceButton").style.display = "none";
-  }
-
-  hideNextPlayerButton() {
-    document.getElementById("nextPlayerButton").style.display = "none";
-  }
+  }*/
 
   hideBuyPropertyButton() {
     document.getElementById("buyPropertyButton").style.display = "none";
@@ -690,14 +654,6 @@ export class BoardDisplay {
 
   hideUsePrisonCardButton() {
     document.getElementById("usePrisonCardButton").style.display = "none";
-  }
-
-  displayRollButton() {
-    document.getElementById("diceButton").style.display = "flex";
-  }
-
-  displayNextPlayerButton() {
-    document.getElementById("nextPlayerButton").style.display = "flex";
   }
 
   displayBuyPropertyButton() {

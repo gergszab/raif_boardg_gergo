@@ -1,4 +1,4 @@
-import {OwnersEnum} from "./enums.js";
+import {OwnersEnum} from "../enums.js";
 
 export class Tile {
   /**

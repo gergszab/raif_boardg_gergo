@@ -1,4 +1,4 @@
-import {CardEffectEnum, CardsTextEnum, CardTypeEnum, DeckTypeEnum} from "./enums.js";
+import {CardEffectEnum, CardsTextEnum, CardTypeEnum, DeckTypeEnum} from "../enums.js";
 import {Card} from "./card.js";
 
 export class Deck {
@@ -31,13 +31,13 @@ export class Deck {
    */
   #createSurpriseDeck() {
     this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Other, text: CardsTextEnum.FreeEscape}));
-    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess1, value: -1000}));
-    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess2, value: -2000}));
-    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess3, value: -3000}));
-    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess4, value: -4000}));
-    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess5, value: -5000}));
-    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess6, value: -6000}));
-    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess7, value: -8000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess1, value: 1000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess2, value: 2000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess3, value: 3000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess4, value: 4000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess5, value: 5000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess6, value: 6000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess7, value: 8000}));
     this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Addition, text: CardsTextEnum.Kapsz1, value: 1000}));
     this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Addition, text: CardsTextEnum.Kapsz2, value: 2000}));
     this.#cards.push(new Card({type: CardTypeEnum.Surprise, effect: CardEffectEnum.Addition, text: CardsTextEnum.Kapsz4, value: 4000}));
@@ -55,11 +55,11 @@ export class Deck {
     this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Other, text: CardsTextEnum.FreeEscape}));
     this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Other, text: CardsTextEnum.PayByPropertySmall}));
     this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Other, text: CardsTextEnum.PayByPropertyBig}));
-    this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess1, value: -1000}));
-    this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess2, value: -2000}));
-    this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess4, value: -4000}));
-    this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess7, value: -8000}));
-    this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess8, value: -10000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess1, value: 1000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess2, value: 2000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess4, value: 4000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess7, value: 8000}));
+    this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Subtraction, text: CardsTextEnum.Fizess8, value: 10000}));
     this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Addition, text: CardsTextEnum.Kapsz1, value: 1000}));
     this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Addition, text: CardsTextEnum.Kapsz2, value: 2000}));
     this.#cards.push(new Card({type: CardTypeEnum.Lucky, effect: CardEffectEnum.Addition, text: CardsTextEnum.Kapsz3, value: 3000}));
