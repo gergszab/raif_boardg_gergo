@@ -57,7 +57,6 @@ export class ControlDisplay {
     history.style.overflowY = "auto";
     history.style.alignContent = "start";
     history.style.maxHeight = "26vh";
-    //history.style.height = "initial";
     infoContainer.appendChild(history);
   }
 
@@ -162,6 +161,10 @@ export class ControlDisplay {
     let gameEvent = document.createElement("SPAN");
     gameEvent.textContent = text;
 
-    document.getElementById("gameHistory").appendChild(gameEvent);
+    let gameHistory = document.getElementById("gameHistory");
+
+    gameHistory.appendChild(gameEvent);
+    gameHistory.scrollTop = gameHistory.scrollHeight - gameHistory.clientHeight;
+
   }
 }

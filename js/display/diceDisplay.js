@@ -37,16 +37,16 @@ export class DiceDisplay {
     startButton.textContent = 'Start game';
     diceContainer.appendChild(startButton);
 
-    const nextPlayerButton = document.createElement("BUTTON");
-    nextPlayerButton.id = "nextPlayerButton";
-    nextPlayerButton.style.gridArea = "button";
-    nextPlayerButton.style.width = "max-content";
-    nextPlayerButton.style.height = "max-content";
-    nextPlayerButton.style.padding = "5px 20px";
-    nextPlayerButton.style.display = "none";
-    nextPlayerButton.style.placeSelf = "center";
-    nextPlayerButton.textContent = "Next Player!";
-    diceContainer.appendChild(nextPlayerButton);
+    const nextTurnButton = document.createElement("BUTTON");
+    nextTurnButton.id = "nextTurnButton";
+    nextTurnButton.style.gridArea = "button";
+    nextTurnButton.style.width = "max-content";
+    nextTurnButton.style.height = "max-content";
+    nextTurnButton.style.padding = "5px 20px";
+    nextTurnButton.style.display = "none";
+    nextTurnButton.style.placeSelf = "center";
+    nextTurnButton.textContent = "Next Turn!";
+    diceContainer.appendChild(nextTurnButton);
 
     const diceButton = document.createElement("BUTTON");
     diceButton.id = "diceButton";
@@ -82,8 +82,8 @@ export class DiceDisplay {
     document.getElementById("diceButton").style.display = "flex";
   }
 
-  displayNextPlayerButton() {
-    document.getElementById("nextPlayerButton").style.display = "flex";
+  displayNextTurnButton() {
+    document.getElementById("nextTurnButton").style.display = "flex";
   }
 
   hideStartButton() {
@@ -94,7 +94,7 @@ export class DiceDisplay {
     document.getElementById("diceButton").style.display = "none";
   }
 
-  hideNextPlayerButton() {
-    document.getElementById("nextPlayerButton").style.display = "none";
+  hideNextTurnButton() {
+    document.getElementById("nextTurnButton").style.display = "none";
   }
 }

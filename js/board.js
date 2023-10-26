@@ -27,7 +27,7 @@ export class Board {
    * @param {Deck} surpriseDeck
    * @param {GameDisplay} gameDisplay
    */
-  constructor({ util, players, luckyDeck, surpriseDeck , gameDisplay}) {
+  constructor({ util, players, luckyDeck, surpriseDeck, gameDisplay }) {
     this.#util = util;
     this.#tiles = [];
     this.#players = players;
@@ -43,10 +43,18 @@ export class Board {
   startGame(resolve) {
     this.#activePlayerIndex = 0;
     this.#resolve = resolve;
-    this.#gameDisplay.deckDisplay.updateSurpriseDeckDisplay(this.#surpriseDeck.cards.length, this.#surpriseDeck.usedCards.length);
-    this.#gameDisplay.deckDisplay.updateLuckyDeckDisplay(this.#luckyDeck.cards.length, this.#luckyDeck.usedCards.length);
-    this.#gameDisplay.controlDisplay.setPlayerActive(this.#players[this.#activePlayerIndex]);
-    this.#gameDisplay.controlDisplay.addGameHistory('Game Started');
+    this.#gameDisplay.deckDisplay.updateSurpriseDeckDisplay(
+      this.#surpriseDeck.cards.length,
+      this.#surpriseDeck.usedCards.length,
+    );
+    this.#gameDisplay.deckDisplay.updateLuckyDeckDisplay(
+      this.#luckyDeck.cards.length,
+      this.#luckyDeck.usedCards.length,
+    );
+    this.#gameDisplay.controlDisplay.setPlayerActive(
+      this.#players[this.#activePlayerIndex],
+    );
+    this.#gameDisplay.controlDisplay.addGameHistory("Game Started");
 
     return this.#takeTurn();
   }
@@ -470,7 +478,7 @@ export class Board {
 
     this.#checkPlayerWealth();
 
-    console.log('End of turn');
+    console.log("End of turn");
 
     await this.#takeTurn();
   }
@@ -478,16 +486,20 @@ export class Board {
   async #prisonRoute() {}
 
   async #roll() {
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       const rollBtnHandler = () => {
         let roll1 = this.#util.random(1, 6);
-        //let roll1 = 5;
+        //let roll1 = 6;
         let roll2 = this.#util.random(1, 6);
-        //let roll2 = 5;
+        //let roll2 = 6;
         this.#rollResult = roll1 + roll2;
 
         this.#gameDisplay.diceDisplay.displayRollResults(roll1, roll2);
-        this.#gameDisplay.controlDisplay.addGameHistory(`${this.#players[this.#activePlayerIndex].name} rolled ${roll1} | ${roll2}`);
+        this.#gameDisplay.controlDisplay.addGameHistory(
+          `${
+            this.#players[this.#activePlayerIndex].name
+          } rolled ${roll1} | ${roll2}`,
+        );
 
         this.#gameDisplay.diceDisplay.hideRollButton();
 
@@ -517,247 +529,134 @@ export class Board {
       targetIndex = targetIndex - 39;
       activePlayer.wealth += 20000;
 
-      this.#gameDisplay.controlDisplay.addGameHistory(`${activePlayer.name} 20.000 Ft fizetést vett fel.`);
+      this.#gameDisplay.controlDisplay.addGameHistory(
+        `${activePlayer.name} 20.000 Ft fizetést vett fel.`,
+      );
     }
 
-    this.#gameDisplay.boardDisplay.updatePlayerLocationDisplay(activePlayer, targetIndex);
+    this.#gameDisplay.boardDisplay.updatePlayerLocationDisplay(
+      activePlayer,
+      targetIndex,
+    );
 
     activePlayer.position = targetIndex;
-  }
-
-  async #nextPlayer() {
-    let previousPlayer = this.#players[this.#activePlayerIndex];
-
-    this.#activePlayerIndex === this.#players.length - 1
-      ? (this.#activePlayerIndex = 0)
-      : this.#activePlayerIndex++;
-
-    let activePlayer = this.#players[this.#activePlayerIndex];
-
-    setTimeout(() => {
-      alert(
-        `${previousPlayer.name}'s turn ended.\n\nIt's ${activePlayer.name}'s turn!`,
-      );
-    }, 0);
-
-    this.#gameDisplay.controlDisplay.setPlayerInactive(previousPlayer);
-    this.#gameDisplay.controlDisplay.setPlayerActive(activePlayer);
-
-    this.#gameDisplay.diceDisplay.hideNextPlayerButton();
-    this.#gameDisplay.diceDisplay.displayRollResultsPlaceholder();
   }
 
   async #handleTileActions() {
     let activePlayer = this.#players[this.#activePlayerIndex];
     let activeTile = this.#tiles[activePlayer.position];
 
-    if (this.#rollResult === 12) {
-      await new Promise(resolve => {
-        // TODO non next player route
-      });
-    } else {
-      await new Promise(resolve => {
-        let buyPropertyCallback;
-        let nextPlayerCallback = () => {
-          this.#nextPlayer();
+    await new Promise((resolve) => {
+      this.#setupButtons(resolve);
 
-          if (buyPropertyCallback !== null) {
-            document
-              .getElementById("buyPropertyButton")
-              .removeEventListener("click", buyPropertyCallback);
-          }
+      // if tile is tax, pay the tile's price
+      if (activeTile.type === TileTypesEnum.Tax) {
+        activePlayer.wealth -= activeTile.price;
+        this.#gameDisplay.controlDisplay.addGameHistory(
+          `${activePlayer.name} befizetett ${activeTile.price} Ft adót.`,
+        );
+      }
 
-          document
-            .getElementById("nextPlayerButton")
-            .removeEventListener("click", nextPlayerCallback);
-          setTimeout(() => resolve(), 800);
-        }
-        this.#gameDisplay.diceDisplay.displayNextPlayerButton();
+      // if tile is owned by a different player
+      if (
+        activeTile.owner !== OwnersEnum.Bank &&
+        activeTile.owner !== activePlayer.name
+      ) {
+        this.#payRent();
+      }
+
+      // if tile is Go to Prison
+      if (activeTile.type === TileTypesEnum.GoToPrison) {
+        this.#goToPrison();
+      }
+
+      // draw a surprise card
+      if (activeTile.type === TileTypesEnum.SurpriseCard) {
+        this.#useSurpriseCard();
+      }
+
+      // draw a lucky card
+      if (activeTile.type === TileTypesEnum.LuckyCard) {
+        this.#useLuckyCard();
+      }
+
+      //TODO create remaining options here, like building selling and so
+
+      this.#gameDisplay.controlDisplay.updatePlayerInfoDisplay(this.#players);
+    });
+  }
+
+  #setupButtons(resolve) {
+    let activePlayer = this.#players[this.#activePlayerIndex];
+    let activeTile = this.#tiles[activePlayer.position];
+
+    let buyPropertyCallback;
+
+    let nextTurnCallback = () => {
+      this.#nextTurn();
+
+      if (buyPropertyCallback !== null) {
         document
-          .getElementById("nextPlayerButton")
-          .addEventListener("click", nextPlayerCallback);
+          .getElementById("buyPropertyButton")
+          .removeEventListener("click", buyPropertyCallback);
+      }
 
-        // if tile is property and owned by the bank, enable the buy button
-        if (
-          (activeTile.type === TileTypesEnum.Property ||
-            activeTile.type === TileTypesEnum.Train ||
-            activeTile.type === TileTypesEnum.PublicWorks) &&
-          activeTile.owner === OwnersEnum.Bank &&
-          activePlayer.wealth >= activeTile.price
-        ) {
-          buyPropertyCallback = () => {
-            this.#buyProperty();
-          }
-          this.#gameDisplay.boardDisplay.displayBuyPropertyButton();
-          document
-            .getElementById("buyPropertyButton")
-            .addEventListener("click", buyPropertyCallback);
-        }
+      document
+        .getElementById("nextTurnButton")
+        .removeEventListener("click", nextTurnCallback);
+      setTimeout(() => resolve(), 800);
+    };
+    this.#gameDisplay.diceDisplay.displayNextTurnButton();
+    document
+      .getElementById("nextTurnButton")
+      .addEventListener("click", nextTurnCallback);
 
-        // if tile is tax, pay the tile's price
-        if (activeTile.type === TileTypesEnum.Tax) {
-          activePlayer.wealth -= activeTile.price;
-          this.#gameDisplay.controlDisplay.addGameHistory(`${activePlayer.name} befizetett ${activeTile.price} Ft adót.`);
-        }
+    // if tile is property and owned by the bank, enable the buy button
+    if (
+      (activeTile.type === TileTypesEnum.Property ||
+        activeTile.type === TileTypesEnum.Train ||
+        activeTile.type === TileTypesEnum.PublicWorks) &&
+      activeTile.owner === OwnersEnum.Bank &&
+      activePlayer.wealth >= activeTile.price
+    ) {
+      buyPropertyCallback = () => {
+        this.#buyProperty();
+      };
+      this.#gameDisplay.boardDisplay.displayBuyPropertyButton();
+      document
+        .getElementById("buyPropertyButton")
+        .addEventListener("click", buyPropertyCallback);
+    }
+  }
 
-        // if tile is property and owned by a different player
-        if (
-          activeTile.type === TileTypesEnum.Property &&
-          activeTile.owner !== OwnersEnum.Bank &&
-          activeTile.owner !== activePlayer.name
-        ) {
-          let rent = activeTile.rent[activeTile.level];
-          let ownerPlayer = this.#players.filter(
-            (player) => player.name === activeTile.owner,
-          )[0];
+  async #nextTurn(resolve) {
+    if (this.#rollResult !== 12) {
+      let previousPlayer = this.#players[this.#activePlayerIndex];
 
-          activePlayer.wealth -= rent;
-          ownerPlayer.wealth += rent;
-          this.#gameDisplay.controlDisplay.addGameHistory(`${activePlayer.name} ${rent} Ft bérletidíjat fizetett ${ownerPlayer} részére.`);
-        }
+      this.#activePlayerIndex === this.#players.length - 1
+        ? (this.#activePlayerIndex = 0)
+        : this.#activePlayerIndex++;
 
-        // if tile is a train and owned by a different player
-        if (
-          activeTile.type === TileTypesEnum.Train &&
-          activeTile.owner !== OwnersEnum.Bank &&
-          activeTile.owner !== activePlayer.name
-        ) {
-          let trainsOwned = this.#tiles.filter(
-            (tile) => tile.owner === activeTile.owner,
-          ).length;
-          let rent = activeTile.rent[trainsOwned];
-          let ownerPlayer = this.#players.filter(
-            (player) => player.name === activeTile.owner,
-          )[0];
+      let activePlayer = this.#players[this.#activePlayerIndex];
 
-          activePlayer.wealth -= rent;
-          ownerPlayer.wealth += rent;
-          this.#gameDisplay.controlDisplay.addGameHistory(`${activePlayer.name} ${rent} Ft bérletidíjat fizetett ${ownerPlayer} részére.`);
-        }
+      setTimeout(() => {
+        alert(
+          `${previousPlayer.name}'s turn ended.\n\nIt's ${activePlayer.name}'s turn!`,
+        );
+      }, 0);
 
-        // if tile is a public works and owned by a different player
-        if (
-          activeTile.type === TileTypesEnum.PublicWorks &&
-          activeTile.owner !== OwnersEnum.Bank &&
-          activeTile.owner !== activePlayer.name
-        ) {
-          let publicWorksOwned = this.#tiles.filter(
-            (tile) => tile.owner === activeTile.owner,
-          ).length;
-          let rent = publicWorksOwned === 2 ? this.#rollResult * 400 : this.#rollResult * 1000;
-          let ownerPlayer = this.#players.filter(
-            (player) => player.name === activeTile.owner,
-          )[0];
+      this.#gameDisplay.controlDisplay.setPlayerInactive(previousPlayer);
+      this.#gameDisplay.controlDisplay.setPlayerActive(activePlayer);
+    } else {
+      let activePlayer = this.#players[this.#activePlayerIndex];
 
-          activePlayer.wealth -= rent;
-          ownerPlayer.wealth += rent;
-          this.#gameDisplay.controlDisplay.addGameHistory(`${activePlayer.name} ${rent} Ft bérletidíjat fizetett ${ownerPlayer} részére.`);
-        }
-
-        // if tile is Go to Prison
-        if (activeTile.type === TileTypesEnum.GoToPrison) {
-          let prisonTileIndex = this.#tiles.filter(
-            (tile) => tile.type === TileTypesEnum.Prison
-          )[0].index;
-          let activePlayer = this.#players[this.#activePlayerIndex];
-
-          activePlayer.inPrison = true;
-          activePlayer.prisonCountdown = 3;
-          activePlayer.position = prisonTileIndex;
-
-          this.#gameDisplay.controlDisplay.updateAndDisplayPrisonCounter(activePlayer);
-          this.#gameDisplay.controlDisplay.updatePlayerInfoDisplay(this.#players);
-          this.#gameDisplay.boardDisplay.updatePlayerLocationDisplay(
-            activePlayer,
-            prisonTileIndex,
-          );
-          this.#gameDisplay.controlDisplay.addGameHistory(`${activePlayer.name} börtönbe került.`);
-        }
-
-        // draw a surprise card
-        if (activeTile.type === TileTypesEnum.SurpriseCard) {
-          let drawnCard = this.#surpriseDeck.draw();
-
-          if (drawnCard.effect === CardEffectEnum.Other) {
-            if (drawnCard.text === CardsTextEnum.FreeEscape) {
-              activePlayer.addFreeEscapeCard(drawnCard);
-            }
-          }
-
-          if (drawnCard.effect === CardEffectEnum.Addition) {
-            activePlayer.wealth += drawnCard.value;
-          }
-
-          if (drawnCard.effect === CardEffectEnum.Subtraction) {
-            activePlayer.wealth -= drawnCard.value;
-          }
-
-          this.#gameDisplay.controlDisplay.addGameHistory(`${activePlayer.name} húzott egy Meglepetéskártyát:`);
-          this.#gameDisplay.controlDisplay.addGameHistory(`${drawnCard.text}`);
-        }
-
-        // draw a lucky card
-        if (activeTile.type === TileTypesEnum.LuckyCard) {
-          let drawnCard = this.#luckyDeck.draw();
-
-          if (drawnCard.effect === CardEffectEnum.Other) {
-            if (drawnCard.text === CardsTextEnum.FreeEscape) {
-              activePlayer.addFreeEscapeCard(drawnCard);
-            }
-
-            if (drawnCard.text === CardsTextEnum.PayByPropertySmall) {
-              let ownedProperties = this.#tiles.filter(tile => tile.owner === OwnersEnum[activePlayer.name]);
-              let rent = 0;
-
-              ownedProperties.forEach(property => {
-                if (property.level > 0 && property.level < 5) {
-                  rent += 2500 * property.level;
-                }
-
-                if (property.level === 5) {
-                  rent += 10000;
-                }
-              });
-
-              activePlayer.wealth -= rent;
-            }
-
-            if (drawnCard.text === CardsTextEnum.PayByPropertyBig) {
-              let ownedProperties = this.#tiles.filter(tile => tile.owner === OwnersEnum[activePlayer.name]);
-              let rent = 0;
-
-              ownedProperties.forEach(property => {
-                if (property.level > 0 && property.level < 5) {
-                  rent += 5000 * property.level;
-                }
-
-                if (property.level === 5) {
-                  rent += 20000;
-                }
-              });
-
-              activePlayer.wealth -= rent;
-            }
-          }
-
-          if (drawnCard.effect === CardEffectEnum.Addition) {
-            activePlayer.wealth += drawnCard.value;
-          }
-
-          if (drawnCard.effect === CardEffectEnum.Subtraction) {
-            activePlayer.wealth -= drawnCard.value;
-          }
-
-          this.#gameDisplay.controlDisplay.addGameHistory(`${activePlayer.name} húzott egy Szerencsekártyát:`);
-          this.#gameDisplay.controlDisplay.addGameHistory(`${drawnCard.text}`);
-        }
-
-        this.#gameDisplay.controlDisplay.updatePlayerInfoDisplay(this.#players);
-
-        //TODO create all extra options in here based on previous method
-      });
+      setTimeout(() => {
+        alert(`${activePlayer.name} rolled a double 6! His turn again.`);
+      }, 0);
     }
 
+    this.#gameDisplay.diceDisplay.hideNextTurnButton();
+    this.#gameDisplay.diceDisplay.displayRollResultsPlaceholder();
   }
 
   #buyProperty() {
@@ -773,11 +672,167 @@ export class Board {
     document.getElementById(`Tile${activeTile.index}title`).style.color =
       "white";
 
-    this.#gameDisplay.controlDisplay.addGameHistory(`${activePlayer.name} megvette a következő telket: ${activeTile.title}.`);
+    this.#gameDisplay.controlDisplay.addGameHistory(
+      `${activePlayer.name} megvette a következő telket: ${activeTile.title}.`,
+    );
 
     this.#gameDisplay.boardDisplay.hideBuyPropertyButton();
 
     this.#gameDisplay.controlDisplay.updatePlayerInfoDisplay(this.#players);
+  }
+
+  #payRent() {
+    let activePlayer = this.#players[this.#activePlayerIndex];
+    let activeTile = this.#tiles[activePlayer.position];
+
+    let rent = 0;
+    let ownerPlayer = this.#players.filter(
+      (player) => player.name === activeTile.owner,
+    )[0];
+
+    // if tile is property and owned by a different player
+    if (activeTile.type === TileTypesEnum.Property) {
+      rent = activeTile.rent[activeTile.level];
+    }
+
+    // if tile is a train and owned by a different player
+    if (activeTile.type === TileTypesEnum.Train) {
+      let trainsOwned = this.#tiles.filter(
+        (tile) =>
+          tile.owner === activeTile.owner && tile.type === TileTypesEnum.Train,
+      ).length;
+
+      rent = activeTile.rent[trainsOwned];
+    }
+
+    // if tile is a public works and owned by a different player
+    if (activeTile.type === TileTypesEnum.PublicWorks) {
+      let publicWorksOwned = this.#tiles.filter(
+        (tile) =>
+          tile.owner === activeTile.owner &&
+          tile.type === TileTypesEnum.PublicWorks,
+      ).length;
+
+      rent =
+        publicWorksOwned === 2
+          ? this.#rollResult * 1000
+          : this.#rollResult * 400;
+    }
+
+    activePlayer.wealth -= rent;
+    ownerPlayer.wealth += rent;
+    this.#gameDisplay.controlDisplay.addGameHistory(
+      `${activePlayer.name} ${rent} Ft bérletidíjat fizetett ${ownerPlayer} részére.`,
+    );
+  }
+
+  #goToPrison() {
+    let prisonTileIndex = this.#tiles.filter(
+      (tile) => tile.type === TileTypesEnum.Prison,
+    )[0].index;
+    let activePlayer = this.#players[this.#activePlayerIndex];
+
+    activePlayer.inPrison = true;
+    activePlayer.prisonCountdown = 3;
+    activePlayer.position = prisonTileIndex;
+
+    this.#gameDisplay.controlDisplay.updateAndDisplayPrisonCounter(
+      activePlayer,
+    );
+    this.#gameDisplay.controlDisplay.updatePlayerInfoDisplay(this.#players);
+    this.#gameDisplay.boardDisplay.updatePlayerLocationDisplay(
+      activePlayer,
+      prisonTileIndex,
+    );
+    this.#gameDisplay.controlDisplay.addGameHistory(
+      `${activePlayer.name} börtönbe került.`,
+    );
+  }
+
+  #useSurpriseCard() {
+    let activePlayer = this.#players[this.#activePlayerIndex];
+    let drawnCard = this.#surpriseDeck.draw();
+
+    if (drawnCard.effect === CardEffectEnum.Other) {
+      if (drawnCard.text === CardsTextEnum.FreeEscape) {
+        activePlayer.addFreeEscapeCard(drawnCard);
+      }
+    }
+
+    if (drawnCard.effect === CardEffectEnum.Addition) {
+      activePlayer.wealth += drawnCard.value;
+    }
+
+    if (drawnCard.effect === CardEffectEnum.Subtraction) {
+      activePlayer.wealth -= drawnCard.value;
+    }
+
+    this.#gameDisplay.controlDisplay.addGameHistory(
+      `${activePlayer.name} húzott egy Meglepetéskártyát:`,
+    );
+    this.#gameDisplay.controlDisplay.addGameHistory(`${drawnCard.text}`);
+  }
+
+  #useLuckyCard() {
+    let activePlayer = this.#players[this.#activePlayerIndex];
+    let drawnCard = this.#luckyDeck.draw();
+
+    if (drawnCard.effect === CardEffectEnum.Other) {
+      if (drawnCard.text === CardsTextEnum.FreeEscape) {
+        activePlayer.addFreeEscapeCard(drawnCard);
+      }
+
+      if (drawnCard.text === CardsTextEnum.PayByPropertySmall) {
+        let ownedProperties = this.#tiles.filter(
+          (tile) => tile.owner === OwnersEnum[activePlayer.name],
+        );
+        let rent = 0;
+
+        ownedProperties.forEach((property) => {
+          if (property.level > 0 && property.level < 5) {
+            rent += 2500 * property.level;
+          }
+
+          if (property.level === 5) {
+            rent += 10000;
+          }
+        });
+
+        activePlayer.wealth -= rent;
+      }
+
+      if (drawnCard.text === CardsTextEnum.PayByPropertyBig) {
+        let ownedProperties = this.#tiles.filter(
+          (tile) => tile.owner === OwnersEnum[activePlayer.name],
+        );
+        let rent = 0;
+
+        ownedProperties.forEach((property) => {
+          if (property.level > 0 && property.level < 5) {
+            rent += 5000 * property.level;
+          }
+
+          if (property.level === 5) {
+            rent += 20000;
+          }
+        });
+
+        activePlayer.wealth -= rent;
+      }
+    }
+
+    if (drawnCard.effect === CardEffectEnum.Addition) {
+      activePlayer.wealth += drawnCard.value;
+    }
+
+    if (drawnCard.effect === CardEffectEnum.Subtraction) {
+      activePlayer.wealth -= drawnCard.value;
+    }
+
+    this.#gameDisplay.controlDisplay.addGameHistory(
+      `${activePlayer.name} húzott egy Szerencsekártyát:`,
+    );
+    this.#gameDisplay.controlDisplay.addGameHistory(`${drawnCard.text}`);
   }
 
   #payPrison() {
@@ -802,7 +857,7 @@ export class Board {
     let activePlayer = this.#players[this.#activePlayerIndex];
 
     if (activePlayer.wealth < 0) {
-      console.log('player lost');
+      console.log("player lost");
     }
   }
 
