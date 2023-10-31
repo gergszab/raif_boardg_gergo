@@ -483,7 +483,51 @@ export class Board {
     await this.#takeTurn();
   }
 
-  async #prisonRoute() {}
+  async #prisonRoute() {
+    let activePlayer = this.#players[this.#activePlayerIndex];
+
+    await new Promise((resolve) => {
+
+      // Prison roll option
+      let rollPrisonCallback = () => {
+        let roll1 = this.#util.random(1, 6);
+        let roll2 = this.#util.random(1, 6);
+
+        this.#gameDisplay.diceDisplay.displayRollResults(roll1, roll2);
+        this.#gameDisplay.controlDisplay.addGameHistory(
+          `${activePlayer.name} rolled ${roll1} | ${roll2} for Prison`,
+        );
+
+        if (roll1 + roll2 === 12) {
+          activePlayer.inPrison = false;
+        } else {
+
+        }
+
+        document
+          .getElementById("nextTurnButton")
+          .removeEventListener("click", rollPrisonCallback);
+        setTimeout(() => resolve(), 800);
+      };
+
+      if (activePlayer.prisonCountdown > 0) {
+        this.#gameDisplay.boardDisplay.displayRollPrisonButton();
+        document
+          .getElementById("rollPrisonButton")
+          .addEventListener("click", rollPrisonCallback);
+      }
+
+      // prison pay option
+
+
+      this.#gameDisplay.boardDisplay.displayPayPrisonButton();
+
+      // prison free escape card option
+      if (activePlayer.freeEscapeCards !== null && activePlayer.freeEscapeCards.length > 0) {
+        this.#gameDisplay.boardDisplay.displayUsePrisonCardButton();
+      }
+    });
+  }
 
   async #roll() {
     await new Promise((resolve) => {
