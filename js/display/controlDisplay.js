@@ -87,17 +87,6 @@ export class ControlDisplay {
     payPrisonButton.textContent = "Pay! (5000Ft)";
     parent.appendChild(payPrisonButton);
 
-    const rollPrisonButton = document.createElement("BUTTON");
-    rollPrisonButton.id = "rollPrisonButton";
-    rollPrisonButton.style.gridArea = "actionButtons";
-    rollPrisonButton.style.width = "max-content";
-    rollPrisonButton.style.height = "max-content";
-    rollPrisonButton.style.padding = "5px 20px";
-    rollPrisonButton.style.display = "none";
-    rollPrisonButton.style.placeSelf = "center";
-    rollPrisonButton.textContent = "Roll for double!";
-    parent.appendChild(rollPrisonButton);
-
     const usePrisonCardButton = document.createElement("BUTTON");
     usePrisonCardButton.id = "usePrisonCardButton";
     usePrisonCardButton.style.width = "max-content";
