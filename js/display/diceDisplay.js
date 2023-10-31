@@ -57,8 +57,18 @@ export class DiceDisplay {
     diceButton.style.display = "none";
     diceButton.style.placeSelf = "center";
     diceButton.textContent = "Roll!";
-
     diceContainer.appendChild(diceButton);
+
+    const rollPrisonButton = document.createElement("BUTTON");
+    rollPrisonButton.id = "rollPrisonButton";
+    rollPrisonButton.style.gridArea = "actionButtons";
+    rollPrisonButton.style.width = "max-content";
+    rollPrisonButton.style.height = "max-content";
+    rollPrisonButton.style.padding = "5px 20px";
+    rollPrisonButton.style.display = "none";
+    rollPrisonButton.style.placeSelf = "center";
+    rollPrisonButton.textContent = "Roll for double!";
+    diceContainer.appendChild(rollPrisonButton);
   }
 
   /**
